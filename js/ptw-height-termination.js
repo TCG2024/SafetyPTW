@@ -297,7 +297,7 @@ document.getElementById('ptwForm').addEventListener('submit', saveHeightPTWTermi
 
 // Call functions when document is ready
 document.addEventListener('DOMContentLoaded', function() {
-  populatePTWNumberSelect(); // Populate PTW Number select box on page load
+  populateHeightPTWNumberSelect(); // Populate PTW Number select box on page load
   document.getElementById('ptwNumber').addEventListener('change', fetchPTWDetails); // Fetch PTW details on selection change
 });
 
