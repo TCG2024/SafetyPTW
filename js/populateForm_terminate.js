@@ -1,32 +1,57 @@
 //**********************************************************************************************************************************
-// Function to fetch and populate user names in the terminationEhsSignatureSelect with users having "Safety" role
-async function populateTerminationEhsSignatures() {
-  const terminationEhsSelect = document.querySelector('select[name="terminationEhsSignatureSelect"]');
-
-  // Ensure the select element is present
-  if (!terminationEhsSelect) {
-    console.error('The terminationEhsSignatureSelect element is not found in the DOM.');
-    return; // Stop the function if the select box is not found
-  }
+async function populateEhsSignatureSelect() {
+  const ehsSelect = document.querySelector('select[name="terminationEhsSignatureSelect"]');
 
   try {
-    // Fetch all users from Firestore
-    const usersSnapshot = await firebase.firestore().collection('users').get();
+    // Start by clearing the select and adding a placeholder option
+    ehsSelect.innerHTML = ''; // Clear existing options
+    const defaultOption = document.createElement('option');
+    defaultOption.textContent = 'Select EHS Person'; // Placeholder text
+    defaultOption.value = ''; // No value for the placeholder
+    ehsSelect.appendChild(defaultOption);
+
+    // Fetch users with 'Safety' role from Firestore
+    const usersSnapshot = await firebase.firestore().collection('users').where('role', '==', 'Safety').get();
+    if (usersSnapshot.empty) {
+      console.log('No users with \'Safety\' role found.');
+      return;
+    }
+
     usersSnapshot.forEach((doc) => {
       const userData = doc.data();
-      
-      // Filter and populate only 'Safety' role users in the EHS select box
-      if (userData.role === "Safety") {
-        const option = document.createElement('option');
-        option.value = doc.id;
-        option.textContent = userData.fullName;
-        terminationEhsSelect.appendChild(option);
-      }
+      const option = document.createElement('option');
+      option.value = doc.id;
+      option.textContent = userData.fullName;
+      ehsSelect.appendChild(option);
     });
   } catch (error) {
-    console.error("Error fetching users with 'Safety' role for terminationEhsSignatureSelect:", error);
+    console.error("Error fetching 'Safety' role users:", error);
   }
 }
+
+//**********************************************************************************************************
+
+async function setIssuerName() {
+  const issuerNameInput = document.getElementById('terminationIssuerName');
+  const userUID = localStorage.getItem('userUID');
+
+  if (userUID) {
+    try {
+      const userDoc = await firebase.firestore().collection('users').doc(userUID).get();
+      if (userDoc.exists) {
+        issuerNameInput.value = userDoc.data().fullName;
+      } else {
+        console.log("User document not found for UID:", userUID);
+      }
+    } catch (error) {
+      console.error("Error fetching issuer's user details:", error);
+    }
+  } else {
+    console.log("No user UID stored in localStorage for issuer.");
+  }
+}
+
+
 
 //**********************************************************************************************************************************
 
@@ -52,7 +77,8 @@ async function populateContractorSupervisors() {
 
 // Initialize form fields
 document.addEventListener('DOMContentLoaded', async function() {
-  await populateTerminationEhsSignatures();
+await setIssuerName()  
+await populateEhsSignatureSelect();
   await populateContractorSupervisors();
 });
 document.addEventListener('DOMContentLoaded', function() {
