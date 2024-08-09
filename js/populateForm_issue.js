@@ -1,8 +1,11 @@
 // populateForm.js
-
+//**********************************************************************************************************
 // Function to fetch and populate user names in select boxes
 async function populateUserNames() {
-  const usersSelectBoxes = document.querySelectorAll('select[name="requestingPersonnel"], select[name="requesterSignatureSelect"], select[name="ehsSignatureSelect"]');
+  // Select only the dropdowns needed except requesterSignatureSelect
+  const requestingPersonnelSelect = document.querySelector('select[name="requestingPersonnel"]');
+  const ehsSignatureSelect = document.querySelector('select[name="ehsSignatureSelect"]');
+
   const userUID = localStorage.getItem('userUID');
 
   if (userUID) {
@@ -10,12 +13,19 @@ async function populateUserNames() {
       const usersSnapshot = await firebase.firestore().collection('users').get();
       usersSnapshot.forEach((doc) => {
         const userData = doc.data();
-        usersSelectBoxes.forEach(selectBox => {
-          const option = document.createElement('option');
-          option.value = doc.id;
-          option.textContent = userData.fullName;
-          selectBox.appendChild(option);
-        });
+        // Create an option for requesting personnel select box
+        let option = document.createElement('option');
+        option.value = doc.id;
+        option.textContent = userData.fullName;
+        requestingPersonnelSelect.appendChild(option);
+
+        // Filter and add only 'Safety' role users to the EHS Signature Select
+        if (userData.role === "Safety") {
+          let safetyOption = document.createElement('option');
+          safetyOption.value = doc.id;
+          safetyOption.textContent = userData.fullName;
+          ehsSignatureSelect.appendChild(safetyOption);
+        }
       });
 
       // Set the issuer's name in the input box
@@ -29,6 +39,8 @@ async function populateUserNames() {
     }
   }
 }
+
+//**********************************************************************************************************
 
 // Function to fetch and populate contractor names in the select box
 async function populateContractors() {
@@ -51,6 +63,8 @@ async function populateContractors() {
     console.error("Error fetching contractors:", error);
   }
 }
+
+//**********************************************************************************************************
 
 // Function to fetch and populate supervisor names based on the selected contractor
 async function populateSupervisors() {
@@ -79,13 +93,15 @@ async function populateSupervisors() {
   }
 }
 
+//**********************************************************************************************************
+
 // Document ready event
 document.addEventListener('DOMContentLoaded', async function() {
   await populateUserNames();
   await populateContractors();
 });
 
-
+//**********************************************************************************************************
 
 document.addEventListener('DOMContentLoaded', function() {
     // Get current date and time
