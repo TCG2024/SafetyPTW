@@ -42,7 +42,7 @@ document.addEventListener("DOMContentLoaded", function() {
         email: email,
         phoneNumber: phoneNumber,
         role: role,
-        password: hashedPassword // Save the hashed password in Firestore
+        //password: hashedPassword // Save the hashed password in Firestore
       });
 
       alert("User registered successfully!");
