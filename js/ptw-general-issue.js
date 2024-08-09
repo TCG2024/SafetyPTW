@@ -165,4 +165,34 @@ document.addEventListener('DOMContentLoaded', function() {
   // Attach event listener to the form's submit event
   const ptwForm = document.getElementById('ptwForm');
   ptwForm.addEventListener('submit', savePTWFormData);
+
+
+// Get the dropdown and input elements
+    var dropdown = document.getElementById('contractorSupervisor');
+    var input = document.getElementById('contractorSupervisorsignature');
+
+    // Add event listener to the dropdown
+    dropdown.addEventListener('change', function() {
+        // Update the input box with the selected option's text (or value, based on requirement)
+        if (dropdown.selectedIndex > 0) { // Check if an option is selected (not the placeholder)
+            input.value = dropdown.options[dropdown.selectedIndex].text; // or .value if you need the value instead
+        } else {
+            input.value = ''; // Clear input if no supervisor is selected (the placeholder option is selected)
+        }
+    });
+
+// Get the dropdown for requesting personnel and the corresponding input field
+    var personnelDropdown = document.getElementById('requestingPersonnel');
+    var signatureInput = document.getElementById('requesterSignatureSelect');
+
+    // Add an event listener to the personnel dropdown
+    personnelDropdown.addEventListener('change', function() {
+        // Set the input field's value to the text of the selected option in the dropdown
+        if (personnelDropdown.selectedIndex > 0) { // Ensures that a valid option is selected
+            signatureInput.value = personnelDropdown.options[personnelDropdown.selectedIndex].text;
+        } else {
+            signatureInput.value = ''; // Clear the input if the placeholder or no valid option is selected
+        }
+    });
+
 });
