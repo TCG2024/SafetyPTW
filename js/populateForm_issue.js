@@ -1,46 +1,60 @@
 // populateForm.js
 //**********************************************************************************************************
-// Function to fetch and populate user names in select boxes
-async function populateUserNames() {
-  // Select only the dropdowns needed except requesterSignatureSelect
-  const requestingPersonnelSelect = document.querySelector('select[name="requestingPersonnel"]');
-  const ehsSignatureSelect = document.querySelector('select[name="ehsSignatureSelect"]');
+async function populateEhsSignatureSelect() {
+  const ehsSelect = document.querySelector('select[name="ehsSignatureSelect"]');
 
-  const userUID = localStorage.getItem('userUID');
+  try {
+    // Start by clearing the select and adding a placeholder option
+    ehsSelect.innerHTML = ''; // Clear existing options
+    const defaultOption = document.createElement('option');
+    defaultOption.textContent = 'Select EHS Person'; // Placeholder text
+    defaultOption.value = ''; // No value for the placeholder
+    ehsSelect.appendChild(defaultOption);
 
-  if (userUID) {
-    try {
-      const usersSnapshot = await firebase.firestore().collection('users').get();
-      usersSnapshot.forEach((doc) => {
-        const userData = doc.data();
-        // Create an option for requesting personnel select box
-        let option = document.createElement('option');
-        option.value = doc.id;
-        option.textContent = userData.fullName;
-        requestingPersonnelSelect.appendChild(option);
-
-        // Filter and add only 'Safety' role users to the EHS Signature Select
-        if (userData.role === "Safety") {
-          let safetyOption = document.createElement('option');
-          safetyOption.value = doc.id;
-          safetyOption.textContent = userData.fullName;
-          ehsSignatureSelect.appendChild(safetyOption);
-        }
-      });
-
-      // Set the issuer's name in the input box
-      const issuerNameInput = document.getElementById('issuerName');
-      const userDoc = await firebase.firestore().collection('users').doc(userUID).get();
-      if (userDoc.exists) {
-        issuerNameInput.value = userDoc.data().fullName;
-      }
-    } catch (error) {
-      console.error("Error fetching users:", error);
+    // Fetch users with 'Safety' role from Firestore
+    const usersSnapshot = await firebase.firestore().collection('users').where('role', '==', 'Safety').get();
+    if (usersSnapshot.empty) {
+      console.log('No users with \'Safety\' role found.');
+      return;
     }
+
+    usersSnapshot.forEach((doc) => {
+      const userData = doc.data();
+      const option = document.createElement('option');
+      option.value = doc.id;
+      option.textContent = userData.fullName;
+      ehsSelect.appendChild(option);
+    });
+  } catch (error) {
+    console.error("Error fetching 'Safety' role users:", error);
   }
 }
 
 //**********************************************************************************************************
+
+async function setIssuerName() {
+  const issuerNameInput = document.getElementById('issuerName');
+  const userUID = localStorage.getItem('userUID');
+
+  if (userUID) {
+    try {
+      const userDoc = await firebase.firestore().collection('users').doc(userUID).get();
+      if (userDoc.exists) {
+        issuerNameInput.value = userDoc.data().fullName;
+      } else {
+        console.log("User document not found for UID:", userUID);
+      }
+    } catch (error) {
+      console.error("Error fetching issuer's user details:", error);
+    }
+  } else {
+    console.log("No user UID stored in localStorage for issuer.");
+  }
+}
+
+
+//**********************************************************************************************************
+
 
 // Function to fetch and populate contractor names in the select box
 async function populateContractors() {
@@ -97,7 +111,8 @@ async function populateSupervisors() {
 
 // Document ready event
 document.addEventListener('DOMContentLoaded', async function() {
-  await populateUserNames();
+  await populateEhsSignatureSelect();
+  await setIssuerName();
   await populateContractors();
 });
 
