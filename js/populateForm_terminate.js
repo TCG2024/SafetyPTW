@@ -1,31 +1,34 @@
-// Function to fetch and populate user names in select boxes
-async function populateUserNames() {
-  const usersSelectBoxes = document.querySelectorAll('select[name="terminationRequesterSignatureSelect"], select[name="terminationEhsSignatureSelect"]');
-  const userUID = localStorage.getItem('userUID');
+//**********************************************************************************************************************************
+// Function to fetch and populate user names in the terminationEhsSignatureSelect with users having "Safety" role
+async function populateTerminationEhsSignatures() {
+  const terminationEhsSelect = document.querySelector('select[name="terminationEhsSignatureSelect"]');
+
+  // Ensure the select element is present
+  if (!terminationEhsSelect) {
+    console.error('The terminationEhsSignatureSelect element is not found in the DOM.');
+    return; // Stop the function if the select box is not found
+  }
 
   try {
+    // Fetch all users from Firestore
     const usersSnapshot = await firebase.firestore().collection('users').get();
     usersSnapshot.forEach((doc) => {
       const userData = doc.data();
-      usersSelectBoxes.forEach(selectBox => {
+      
+      // Filter and populate only 'Safety' role users in the EHS select box
+      if (userData.role === "Safety") {
         const option = document.createElement('option');
         option.value = doc.id;
         option.textContent = userData.fullName;
-        selectBox.appendChild(option);
-      });
-    });
-
-    // Set the logged in user as the permit issuer
-    if (userUID) {
-      const userDoc = await firebase.firestore().collection('users').doc(userUID).get();
-      if (userDoc.exists) {
-        document.getElementById('terminationIssuerName').value = userDoc.data().fullName;
+        terminationEhsSelect.appendChild(option);
       }
-    }
+    });
   } catch (error) {
-    console.error("Error fetching users:", error);
+    console.error("Error fetching users with 'Safety' role for terminationEhsSignatureSelect:", error);
   }
 }
+
+//**********************************************************************************************************************************
 
 // Function to fetch and populate contractor supervisors in select boxes
 async function populateContractorSupervisors() {
@@ -45,9 +48,11 @@ async function populateContractorSupervisors() {
   }
 }
 
+//**********************************************************************************************************************************
+
 // Initialize form fields
 document.addEventListener('DOMContentLoaded', async function() {
-  await populateUserNames();
+  await populateTerminationEhsSignatures();
   await populateContractorSupervisors();
 });
 document.addEventListener('DOMContentLoaded', function() {
