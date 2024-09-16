@@ -117,6 +117,17 @@ async function savePTWFormData(event) {
 
     const ptwNumber = formData.ptwNumber;
 
+    // Check if the PTW with the same number already exists in Firestore
+    const existingDoc = await db.collection('General PTW Issue').doc(ptwNumber).get();
+
+    if (existingDoc.exists) {
+      // If the document already exists, alert the user and stop the process
+      hideLoading();
+      alert('A PTW with this number already exists. Please generate a new PTW.');
+      return;
+    }
+
+    // Proceed with saving the document if it doesn't exist
     const docRef = db.collection('General PTW Issue').doc(ptwNumber);
     await docRef.set(formData);
 
@@ -153,7 +164,6 @@ async function savePTWFormData(event) {
     alert('Error submitting PTW: ' + error.message);
   }
 }
-
 
 //*************************************************************************************************************************
 
